@@ -3,6 +3,7 @@ package irc
 import (
     "bufio"
     "net"
+    "strings"
 )
 
 type Client struct {
@@ -21,7 +22,7 @@ type User struct {
 func Connect(addr string, port uint32, user User) (*Client, error) {
     cConn, err := net.Dial("tcp", addr)
     if err != nil {
-        return nil, 
+        return nil, Client{}
     }
     client = &Client{
         conn: cConn
@@ -34,14 +35,27 @@ func Connect(addr string, port uint32, user User) (*Client, error) {
 }
 
 func (c *Client) Send(cmd string) {
-    c.writer.WriteString(cmd + "\r\n")
-    c.writer.Flush()
+    c.conn.Write(cmd + "\r\n")
+}
+
+func (c *Client) register(user User) {
+    c.Send("NICK " + user.nick)
+    c.Send("USER ")
+}
+
+func (c *Client) Pong(arg string) {
+    c.Send("PONG " + arg)
+}
+
+func (c *Client) Ping() {
+    c.Send("PING ")
 }
 
 func (c *Client) handleInput() {
-    reader := bufio.NewReader(c.conn)
     defer c.conn.Close()
+    reader := bufio.NewReader(c.conn)
+    msg := ""
     for {
-
+        msg = reader.ReadString("\r")
     }
 }
