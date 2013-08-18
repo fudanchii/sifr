@@ -2,6 +2,7 @@ package irc
 
 import (
 	"bufio"
+	"fmt"
 	"net"
 	"strings"
 )
@@ -14,14 +15,14 @@ type Client struct {
 }
 
 func Connect(addr string, user User) (*Client, error) {
-	client = &Client{
+	client := &Client{
 		user:      user,
 		Errorchan: make(chan error),
 	}
-	c.setupMsgHandlers()
+	client.setupMsgHandlers()
 	cConn, err := net.Dial("tcp", addr)
 	if err != nil {
-		return nil, Client{}
+		return nil, &Client{}
 	}
 	client.conn = cConn
 	client.register(user)
@@ -29,13 +30,13 @@ func Connect(addr string, user User) (*Client, error) {
 	return client, nil
 }
 
-func (c *Client) Error() {
+func (c *Client) Error() string {
 	return "Error creating client.\n"
 }
 
 func (c *Client) Send(cmd string, a ...interface{}) {
 	str := fmt.Sprintf(cmd, a...)
-	c.conn.Write(str + "\r\n")
+	c.conn.Write([]byte(str + "\r\n"))
 }
 
 func (c *Client) Join(channel, password string) {
@@ -76,17 +77,17 @@ func (c *Client) responseCTCP(to, answer string) {
 }
 
 func (c *Client) respondTo(maskedUser, action, talkedTo, message string) {
-	if message[0] == ":" {
+	if message[0] == ':' {
 		message = message[1:]
 	}
-	user = strings.SplitN(maskedUser, "!", 2)
-	msg = &Message{
+	user := strings.SplitN(maskedUser, "!", 2)
+	msg := &Message{
 		from:   user[0],
 		to:     talkedTo,
 		action: action,
 		body:   message,
 	}
-	for fn := range c.msgHandlers[action] {
+	for _, fn := range c.msgHandlers[action] {
 		go fn(msg)
 	}
 }
@@ -95,7 +96,7 @@ func (c *Client) handleInput() {
 	defer c.conn.Close()
 	reader := bufio.NewReader(c.conn)
 	for {
-		line, err := reader.ReadString("\r")
+		line, err := reader.ReadString('\r')
 		if err != nil {
 			c.Errorchan <- err
 			break

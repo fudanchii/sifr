@@ -12,12 +12,12 @@ type Message struct {
 type MessageHandlers map[string][]func(*Message)
 
 func ctcpQuote(cmd string) string {
-	quoted = "\01" + cmd + "\01"
+	quoted := "\001" + cmd + "\001"
 	return quoted
 }
 
 func ctcpDequote(cmd string) string {
-	if cmd[0] != "\01" || cmd[len(cmd)-1] != "\01" {
+	if cmd[0] != '\001' || cmd[len(cmd)-1] != '\001' {
 		return cmd
 	}
 	return cmd[1 : len(cmd)-1]
@@ -44,7 +44,7 @@ func (c *Client) AddHandler(cmd string, fn func(*Message)) {
 }
 
 func (c *Client) privMsgDefaultHandler(msg *Message) {
-	if msg.isCTCP && c.user.isMsgForMe(msg) {
+	if msg.isCTCP() && c.user.isMsgForMe(msg) {
 		c.handleCTCP(msg)
 		return
 	}
@@ -62,5 +62,5 @@ func (c *Client) handleCTCP(msg *Message) {
 }
 
 func (m *Message) isCTCP() bool {
-	return m.body[0] == "\01" && m.body[len(m.body)-1] == "\01"
+	return m.body[0] == '\001' && m.body[len(m.body)-1] == '\001'
 }
