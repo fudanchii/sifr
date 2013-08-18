@@ -6,15 +6,13 @@ import (
     "strings"
 )
 
-func NewUser(nick, username, realname, password string) *User {
-    return &User{
-        nick:       nick
-        mode:       0
-        username:   username
-        realname:   realname
-        password:   password
-    }
+type Client struct {
+    conn        net.Conn
+    user        User
+    msgHandlers MessageHandlers
+    Errorchan   chan error
 }
+
 
 func Connect(addr string, user User) (*Client, error) {
     client = &Client{
@@ -41,8 +39,20 @@ func (c *Client) Send(cmd string, a ...interface{}) {
     c.conn.Write(str + "\r\n")
 }
 
+func (c *Client) Join(channel, password string) {
+    c.Send("JOIN %s %s", channel, password)
+}
+
 func (c *Client) Nick(nick string) {
     c.Send("NICK " + nick)
+}
+
+func (c *Client) Notice(to, msg string) {
+    c.Send("NOTICE %s :%s", to, msg)
+}
+
+func (c *Client) Part(channel string) {
+    c.Send("PART " + channel)
 }
 
 func (c *Client) Ping(arg string) {
@@ -51,10 +61,6 @@ func (c *Client) Ping(arg string) {
 
 func (c *Client) Pong(arg string) {
     c.Send("PONG :" + arg)
-}
-
-func (c *Client) Notice(to, msg string) {
-    c.Send("NOTICE %s :%s", to, msg)
 }
 
 func (c *Client) PrivMsg(to, msg string) {
@@ -96,7 +102,7 @@ func (c *Client) handleInput() {
             break
         }
         packet := strings.SplitN(line, " ", 4)
-        go c.respondTo(packet[0], packet[1], packet[2], packet[4])
+        go c.respondTo(packet[0], packet[1], packet[2], packet[3])
     }
 
 }

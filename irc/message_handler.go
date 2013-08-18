@@ -2,6 +2,14 @@ package irc
 
 import "strings"
 
+type Message struct {
+    from        string
+    to          string
+    action      string
+    body        string
+}
+
+type MessageHandlers map[string][]func(*Message)
 
 func ctcpQuote(cmd string) string {
     quoted = "\01" + cmd + "\01"
@@ -36,19 +44,23 @@ func (c *Client) AddHandler(cmd string, fn func(*Message)) {
 }
 
 func (c *Client) privMsgDefaultHandler(msg *Message) {
-    if msg.isCTCP && c.isMsgForMe(msg) {
+    if msg.isCTCP && c.user.isMsgForMe(msg) {
         c.handleCTCP(msg)
         return
     }
     //---- handle the usual PRIVMSG here
 }
 
+func (c *Client) handleCTCP(msg *Message) {
+    cmd := ctcpDequote(msg.body)
+    switch cmd {
+    case "VERSION":
+        c.responseCTCP(msg.from, "VERSION Sifr:0.0.0")
+    case "SOURCE":
+        c.responseCTCP(msg.from, "SOURCE https://github.com/fudanchii/sifr")
+    }
+}
+
 func (m *Message) isCTCP() bool {
     return m.body[0] == "\01" && m.body[len(m.body)-1] == "\01"
 }
-
-func (c *Client) isMsgForMe(msg *Message) bool {
-    re, _ := regexp.Compile("(^| )" + c.user.nick + "([\\W]|$)")
-    return msg.to == c.user.nick || re.MatchString(msg.body)
-}
-
