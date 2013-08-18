@@ -6,17 +6,23 @@ import (
 	"os"
 )
 
+// Constants
 var (
-	version = flag.Bool("version", false, "Show current version then exit.")
+    VERSION = "v0.0.0"
+)
+
+// Flags
+var (
+	flVersion = flag.Bool("version", false, "Show current version then exit.")
 )
 
 func showVersion() {
-	os.Stderr.WriteString("v0.0.0\n")
+	os.Stderr.WriteString(VERSION +"\n")
 }
 
 func main() {
 	flag.Parse()
-	if *version {
+	if *flVersion {
 		showVersion()
 		os.Exit(0)
 	}
