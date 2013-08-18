@@ -1,6 +1,8 @@
 package irc
 
-import "strings"
+import (
+	"strings"
+)
 
 type Message struct {
 	from   string

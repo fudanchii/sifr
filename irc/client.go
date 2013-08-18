@@ -3,6 +3,7 @@ package irc
 import (
 	"bufio"
 	"fmt"
+	"log"
 	"net"
 	"strings"
 )
@@ -37,6 +38,7 @@ func (c *Client) Error() string {
 func (c *Client) Send(cmd string, a ...interface{}) {
 	str := fmt.Sprintf(cmd, a...)
 	c.conn.Write([]byte(str + "\r\n"))
+	log.Println("out>", str)
 }
 
 func (c *Client) Join(channel, password string) {
@@ -77,9 +79,8 @@ func (c *Client) responseCTCP(to, answer string) {
 }
 
 func (c *Client) respondTo(maskedUser, action, talkedTo, message string) {
-	if message[0] == ':' {
-		message = message[1:]
-	}
+    maskedUser = strings.TrimPrefix(maskedUser, ":")
+    message = strings.TrimPrefix(message, ":")
 	user := strings.SplitN(maskedUser, "!", 2)
 	msg := &Message{
 		from:   user[0],
@@ -96,13 +97,20 @@ func (c *Client) handleInput() {
 	defer c.conn.Close()
 	reader := bufio.NewReader(c.conn)
 	for {
-		line, err := reader.ReadString('\r')
+		line, err := reader.ReadString('\n')
 		if err != nil {
 			c.Errorchan <- err
 			break
 		}
-		packet := strings.SplitN(line, " ", 4)
-		go c.respondTo(packet[0], packet[1], packet[2], packet[3])
+        // FIXME: This is obviously not the right way to parse messages
+		packet := strings.SplitN(line[:len(line)-2], " ", 4)
+        if len(packet) == 2 {
+            packet = []string{packet[1], packet[0], c.user.nick, packet[1]}
+        }
+		if len(packet) == 4 {
+			go c.respondTo(packet[0], packet[1], packet[2], packet[3])
+		}
+		log.Println("in>", line)
 	}
 
 }
