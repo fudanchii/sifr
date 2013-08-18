@@ -79,8 +79,8 @@ func (c *Client) responseCTCP(to, answer string) {
 }
 
 func (c *Client) respondTo(maskedUser, action, talkedTo, message string) {
-    maskedUser = strings.TrimPrefix(maskedUser, ":")
-    message = strings.TrimPrefix(message, ":")
+	maskedUser = strings.TrimPrefix(maskedUser, ":")
+	message = strings.TrimPrefix(message, ":")
 	user := strings.SplitN(maskedUser, "!", 2)
 	msg := &Message{
 		From:   user[0],
@@ -102,11 +102,11 @@ func (c *Client) handleInput() {
 			c.Errorchan <- err
 			break
 		}
-        // FIXME: This is obviously not the right way to parse messages
+		// FIXME: This is obviously not the right way to parse messages
 		packet := strings.SplitN(line[:len(line)-2], " ", 4)
-        if len(packet) == 2 {
-            packet = []string{packet[1], packet[0], c.User.Nick, packet[1]}
-        }
+		if len(packet) == 2 {
+			packet = []string{packet[1], packet[0], c.User.Nick, packet[1]}
+		}
 		if len(packet) == 4 {
 			go c.respondTo(packet[0], packet[1], packet[2], packet[3])
 		}
