@@ -5,6 +5,17 @@ import (
 	"strings"
 )
 
+type Skill func(c *irc.Client, m *irc.Message)
+
+func forgeSkill(cmd string, hasArg bool, fn Skill, c *irc.Client) MessageHandler {
+	return func(msg *irc.Message) {
+		if nocmd(msg.Body, cmd, hasArg) {
+			return
+		}
+		fn(c, msg)
+	}
+}
+
 func nocmd(txt, cmd string, hasArg bool) bool {
 	offset := len(cmd)
 	if hasArg {
@@ -17,11 +28,7 @@ func nocmd(txt, cmd string, hasArg bool) bool {
 }
 
 func ActivateFor(c *irc.Client) {
-	c.AddHandler("PRIVMSG", func(msg *irc.Message) {
-		flipCoin(c, msg)
-	})
-
-	c.AddHandler("PRIVMSG", func(msg *irc.Message) {
-		joinChannel(c, msg)
-	})
+	c.AddHandler("PRIVMSG", forgeSkill(".c", true, flipCoin, c))
+	c.AddHandler("PRIVMSG", forgeSkill(".j", true, joinChannel, c))
+	c.AddHandler("PRIVMSG", forgeSkill(".leave", true, leaveChannel, c))
 }

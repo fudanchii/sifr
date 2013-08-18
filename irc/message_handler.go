@@ -11,6 +11,8 @@ type Message struct {
 	Body   string
 }
 
+type MessageHandler func(*Message)
+
 type MessageHandlers map[string][]func(*Message)
 
 func ctcpQuote(cmd string) string {
