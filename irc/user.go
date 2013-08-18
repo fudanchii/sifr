@@ -13,11 +13,11 @@ type User struct {
 
 func NewUser(nick, username, realname, password string) *User {
     return &User{
-        nick:       nick
-        mode:       0
-        username:   username
-        realname:   realname
-        password:   password
+        nick:       nick,
+        mode:       0,
+        username:   username,
+        realname:   realname,
+        password:   password,
     }
 }
 

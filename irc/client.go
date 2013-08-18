@@ -16,8 +16,8 @@ type Client struct {
 
 func Connect(addr string, user User) (*Client, error) {
     client = &Client{
-        user: user
-        Errorchan: make(chan error)
+        user: user,
+        Errorchan: make(chan error),
     }
     c.setupMsgHandlers()
     cConn, err := net.Dial("tcp", addr)
@@ -82,10 +82,10 @@ func (c *Client) respondTo(maskedUser, action, talkedTo, message string) {
     }
     user = strings.SplitN(maskedUser, "!", 2)
     msg = &Message{
-        from:   user[0]
-        to:     talkedTo
-        action: action
-        body:   message
+        from:   user[0],
+        to:     talkedTo,
+        action: action,
+        body:   message,
     }
     for fn := range c.msgHandlers[action] {
         go fn(msg)
