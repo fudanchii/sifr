@@ -13,12 +13,15 @@ type Client struct {
 	User        User
 	msgHandlers MessageHandlers
 	Errorchan   chan error
+	messagechan chan *Message
 }
 
 func Connect(addr string, user User) (*Client, error) {
 	client := &Client{
 		User:      user,
 		Errorchan: make(chan error),
+		// Buffer 25 messages at channel, this is a lot!
+		messagechan: make(chan *Message, 25),
 	}
 	client.setupMsgHandlers()
 	cConn, err := net.Dial("tcp", addr)
@@ -28,6 +31,7 @@ func Connect(addr string, user User) (*Client, error) {
 	client.conn = cConn
 	client.register(user)
 	go client.handleInput()
+	go client.processMessage()
 	return client, nil
 }
 
@@ -72,6 +76,9 @@ func (c *Client) PrivMsg(to, msg string) {
 func (c *Client) register(user User) {
 	c.Nick(user.Nick)
 	c.Send("USER %s %d * :%s", user.Nick, user.mode, user.Realname)
+	if len(user.password) != 0 {
+		c.PrivMsg("nickserv", "identify "+user.password)
+	}
 }
 
 func (c *Client) responseCTCP(to, answer string) {
@@ -79,8 +86,8 @@ func (c *Client) responseCTCP(to, answer string) {
 }
 
 func (c *Client) respondTo(maskedUser, action, talkedTo, message string) {
-	maskedUser = strings.TrimPrefix(maskedUser, ":")
 	message = strings.TrimPrefix(message, ":")
+	maskedUser = strings.TrimPrefix(maskedUser, ":")
 	user := strings.SplitN(maskedUser, "!", 2)
 	msg := &Message{
 		From:   user[0],
@@ -88,9 +95,7 @@ func (c *Client) respondTo(maskedUser, action, talkedTo, message string) {
 		Action: action,
 		Body:   message,
 	}
-	for _, fn := range c.msgHandlers[action] {
-		go fn(msg)
-	}
+	c.messagechan <- msg
 }
 
 func (c *Client) handleInput() {
@@ -99,18 +104,30 @@ func (c *Client) handleInput() {
 	for {
 		line, err := reader.ReadString('\n')
 		if err != nil {
+			close(c.messagechan)
 			c.Errorchan <- err
 			break
 		}
+		log.Println("in>", line)
 		// FIXME: This is obviously not the right way to parse messages
 		packet := strings.SplitN(line[:len(line)-2], " ", 4)
 		if len(packet) == 2 {
 			packet = []string{packet[1], packet[0], c.User.Nick, packet[1]}
 		}
 		if len(packet) == 4 {
-			go c.respondTo(packet[0], packet[1], packet[2], packet[3])
+			c.respondTo(packet[0], packet[1], packet[2], packet[3])
 		}
-		log.Println("in>", line)
 	}
+}
 
+func (c *Client) processMessage() {
+	for {
+		msg, ok := <-c.messagechan
+		if !ok {
+			return
+		}
+		for _, fn := range c.msgHandlers[msg.Action] {
+			fn(msg)
+		}
+	}
 }
