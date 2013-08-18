@@ -10,14 +10,14 @@ import (
 
 type Client struct {
 	conn        net.Conn
-	user        User
+	User        User
 	msgHandlers MessageHandlers
 	Errorchan   chan error
 }
 
 func Connect(addr string, user User) (*Client, error) {
 	client := &Client{
-		user:      user,
+		User:      user,
 		Errorchan: make(chan error),
 	}
 	client.setupMsgHandlers()
@@ -70,8 +70,8 @@ func (c *Client) PrivMsg(to, msg string) {
 }
 
 func (c *Client) register(user User) {
-	c.Nick(user.nick)
-	c.Send("USER %s %d * :%s", user.nick, user.mode, user.realname)
+	c.Nick(user.Nick)
+	c.Send("USER %s %d * :%s", user.Nick, user.mode, user.Realname)
 }
 
 func (c *Client) responseCTCP(to, answer string) {
@@ -83,10 +83,10 @@ func (c *Client) respondTo(maskedUser, action, talkedTo, message string) {
     message = strings.TrimPrefix(message, ":")
 	user := strings.SplitN(maskedUser, "!", 2)
 	msg := &Message{
-		from:   user[0],
-		to:     talkedTo,
-		action: action,
-		body:   message,
+		From:   user[0],
+		To:     talkedTo,
+		Action: action,
+		Body:   message,
 	}
 	for _, fn := range c.msgHandlers[action] {
 		go fn(msg)
@@ -105,7 +105,7 @@ func (c *Client) handleInput() {
         // FIXME: This is obviously not the right way to parse messages
 		packet := strings.SplitN(line[:len(line)-2], " ", 4)
         if len(packet) == 2 {
-            packet = []string{packet[1], packet[0], c.user.nick, packet[1]}
+            packet = []string{packet[1], packet[0], c.User.Nick, packet[1]}
         }
 		if len(packet) == 4 {
 			go c.respondTo(packet[0], packet[1], packet[2], packet[3])

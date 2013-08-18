@@ -7,8 +7,12 @@ import (
     "time"
 )
 
+func nocmd(txt string) bool {
+    return txt[:2] != ".c"
+}
+
 func parse(txt string) []string {
-    result := strings.Split(txt, ",")
+    result := strings.Split(txt[3:], ",")
     if len(result) < 2 {
         result = strings.Split(txt, " ")
     }
@@ -20,15 +24,15 @@ func process(args []string) string {
     return args[rnd.Intn(len(args))]
 }
 
-func flip( c *Client, msg *irc.Message) {
-    if nocmd(msg.body) {
+func flipCoin( c *irc.Client, msg *irc.Message) {
+    if nocmd(msg.Body) {
         return
     }
-    args := parse(msg.body)
-    if context := msg.to[0]; context == '#' {
-        c.PrivMsg(msg.to, msg.from + ": " + process(args))
+    args := parse(msg.Body)
+    if context := msg.To[0]; context == '#' {
+        c.PrivMsg(msg.To, msg.From + ": " + process(args))
     } else {
-        c.PrivMsg(msg.from, process(args))
+        c.PrivMsg(msg.From, process(args))
     }
 }
 

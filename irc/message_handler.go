@@ -5,10 +5,10 @@ import (
 )
 
 type Message struct {
-	from   string
-	to     string
-	action string
-	body   string
+	From   string
+	To     string
+	Action string
+	Body   string
 }
 
 type MessageHandlers map[string][]func(*Message)
@@ -29,7 +29,7 @@ func (c *Client) setupMsgHandlers() {
 	c.msgHandlers = make(MessageHandlers)
 
 	c.AddHandler("PING", func(msg *Message) {
-		c.Pong(msg.body)
+		c.Pong(msg.Body)
 	})
 
 	c.AddHandler("PRIVMSG", c.privMsgDefaultHandler)
@@ -46,7 +46,7 @@ func (c *Client) AddHandler(cmd string, fn func(*Message)) {
 }
 
 func (c *Client) privMsgDefaultHandler(msg *Message) {
-	if msg.isCTCP() && c.user.isMsgForMe(msg) {
+	if msg.isCTCP() && c.User.isMsgForMe(msg) {
 		c.handleCTCP(msg)
 		return
 	}
@@ -54,15 +54,15 @@ func (c *Client) privMsgDefaultHandler(msg *Message) {
 }
 
 func (c *Client) handleCTCP(msg *Message) {
-	cmd := ctcpDequote(msg.body)
+	cmd := ctcpDequote(msg.Body)
 	switch cmd {
 	case "VERSION":
-		c.responseCTCP(msg.from, "VERSION Sifr:0.0.0")
+		c.responseCTCP(msg.From, "VERSION Sifr:0.0.0")
 	case "SOURCE":
-		c.responseCTCP(msg.from, "SOURCE https://github.com/fudanchii/sifr")
+		c.responseCTCP(msg.From, "SOURCE https://github.com/fudanchii/sifr")
 	}
 }
 
 func (m *Message) isCTCP() bool {
-	return m.body[0] == '\001' && m.body[len(m.body)-1] == '\001'
+	return m.Body[0] == '\001' && m.Body[len(m.Body)-1] == '\001'
 }
