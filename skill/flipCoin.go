@@ -7,10 +7,6 @@ import (
     "time"
 )
 
-func nocmd(txt string) bool {
-    return txt[:2] != ".c"
-}
-
 func parse(txt string) []string {
     result := strings.Split(txt[3:], ",")
     if len(result) < 2 {
@@ -25,7 +21,7 @@ func process(args []string) string {
 }
 
 func flipCoin( c *irc.Client, msg *irc.Message) {
-    if nocmd(msg.Body) {
+    if nocmd(msg.Body, ".c", true) {
         return
     }
     args := parse(msg.Body)
