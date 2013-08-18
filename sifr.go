@@ -1,14 +1,14 @@
 package main
 
 import (
-    "flag"
-    "github.com/fudanchii/sifr/irc"
+	"flag"
+	"github.com/fudanchii/sifr/irc"
 	"os"
 )
 
 // Constants
 var (
-    VERSION = "v0.0.0"
+	VERSION = "v0.0.0"
 )
 
 // Flags
@@ -17,7 +17,7 @@ var (
 )
 
 func showVersion() {
-	os.Stderr.WriteString(VERSION +"\n")
+	os.Stderr.WriteString(VERSION + "\n")
 }
 
 func main() {
