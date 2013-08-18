@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"github.com/fudanchii/sifr/irc"
+	"github.com/fudanchii/sifr/skill"
 	"os"
 )
 
@@ -49,5 +50,6 @@ func main() {
 		os.Stderr.WriteString(err.Error() + "\n")
 		os.Exit(1)
 	}
+	skill.ActivateFor(client)
 	<-client.Errorchan
 }
