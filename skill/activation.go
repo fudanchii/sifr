@@ -7,7 +7,7 @@ import (
 
 type Skill func(c *irc.Client, m *irc.Message)
 
-func forgeSkill(cmd string, hasArg bool, fn Skill, c *irc.Client) MessageHandler {
+func forgeSkill(cmd string, hasArg bool, fn Skill, c *irc.Client) irc.MessageHandler {
 	return func(msg *irc.Message) {
 		if nocmd(msg.Body, cmd, hasArg) {
 			return

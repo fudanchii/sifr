@@ -10,7 +10,7 @@ import (
 func parse(txt string) []string {
 	result := strings.Split(txt[3:], ",")
 	if len(result) < 2 {
-		result = strings.Split(txt, " ")
+		result = strings.Split(txt[3:], " ")
 	}
 	return result
 }
@@ -21,9 +21,6 @@ func process(args []string) string {
 }
 
 func flipCoin(c *irc.Client, msg *irc.Message) {
-	if nocmd(msg.Body, ".c", true) {
-		return
-	}
 	args := parse(msg.Body)
 	if context := msg.To[0]; context == '#' {
 		c.PrivMsg(msg.To, msg.From+": "+process(args))

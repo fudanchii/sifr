@@ -29,9 +29,9 @@ func Connect(addr string, user User) (*Client, error) {
 		return nil, &Client{}
 	}
 	client.conn = cConn
-	client.register(user)
 	go client.handleInput()
 	go client.processMessage()
+	client.register(user)
 	return client, nil
 }
 
