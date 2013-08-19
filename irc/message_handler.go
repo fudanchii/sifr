@@ -48,7 +48,7 @@ func (c *Client) AddHandler(cmd string, fn MessageHandler) {
 }
 
 func (c *Client) privMsgDefaultHandler(msg *Message) {
-	if msg.isCTCP() && c.User.isMsgForMe(msg) {
+	if msg.IsCTCP() && c.User.IsMsgForMe(msg) {
 		c.handleCTCP(msg)
 		return
 	}
@@ -65,6 +65,6 @@ func (c *Client) handleCTCP(msg *Message) {
 	}
 }
 
-func (m *Message) isCTCP() bool {
+func (m *Message) IsCTCP() bool {
 	return m.Body[0] == '\001' && m.Body[len(m.Body)-1] == '\001'
 }

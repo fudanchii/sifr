@@ -21,7 +21,7 @@ func NewUser(nick, username, realname, password string) *User {
 	}
 }
 
-func (u *User) isMsgForMe(msg *Message) bool {
+func (u *User) IsMsgForMe(msg *Message) bool {
 	re, _ := regexp.Compile("(^| )" + u.Nick + "([\\W]|$)")
 	return msg.To == u.Nick || re.MatchString(msg.Body)
 }
