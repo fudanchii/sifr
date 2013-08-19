@@ -13,7 +13,7 @@ type Message struct {
 
 type MessageHandler func(*Message)
 
-type MessageHandlers map[string][]func(*Message)
+type MessageHandlers map[string][]MessageHandler
 
 func ctcpQuote(cmd string) string {
 	quoted := "\001" + cmd + "\001"
@@ -37,12 +37,12 @@ func (c *Client) setupMsgHandlers() {
 	c.AddHandler("PRIVMSG", c.privMsgDefaultHandler)
 }
 
-func (c *Client) AddHandler(cmd string, fn func(*Message)) {
+func (c *Client) AddHandler(cmd string, fn MessageHandler) {
 	cmd = strings.ToUpper(cmd)
 	if _, ok := c.msgHandlers[cmd]; ok {
 		c.msgHandlers[cmd] = append(c.msgHandlers[cmd], fn)
 	} else {
-		c.msgHandlers[cmd] = make([]func(*Message), 1)
+		c.msgHandlers[cmd] = make([]MessageHandler, 1)
 		c.msgHandlers[cmd][0] = fn
 	}
 }
