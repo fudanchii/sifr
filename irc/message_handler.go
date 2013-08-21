@@ -15,6 +15,20 @@ type MessageHandler func(*Message)
 
 type MessageHandlers map[string][]MessageHandler
 
+func createMessage(maskedUser, action, talkedTo, message string) *Message {
+	message = strings.TrimPrefix(message, ":")
+	maskedUser = strings.TrimPrefix(maskedUser, ":")
+	user := strings.SplitN(maskedUser, "!", 2)
+	msg := &Message{
+		From:      user[0],
+		FromIdent: maskedUser,
+		To:        talkedTo,
+		Action:    action,
+		Body:      message,
+	}
+	return msg
+}
+
 func ctcpQuote(cmd string) string {
 	quoted := "\001" + cmd + "\001"
 	return quoted

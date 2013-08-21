@@ -5,21 +5,24 @@ import (
 	"strings"
 )
 
-type archetype func(c *irc.Client, m *irc.Message)
-
-type archMeta struct {
-    cmd string
-    hasArg bool
-    authorized bool
-    archFn archetype
+type archetype struct {
+	cmd        string
+	hasArg     bool
+	authorized bool
+	function   func(c *irc.Client, m *irc.Message)
 }
 
-func forgeSkill(archmeta archMeta, c *irc.Client) irc.MessageHandler {
+func forgeSkill(arch archetype, c *irc.Client) irc.MessageHandler {
 	return func(msg *irc.Message) {
-		if nocmd(msg.Body, archmeta.cmd, archmeta.hasArg) {
+		if nocmd(msg.Body, arch.cmd, arch.hasArg) {
 			return
 		}
-		archmeta.archFn(c, msg)
+		switch {
+		case arch.authorized && canPermit(msg):
+			fallthrough
+		case !arch.authorized:
+			arch.function(c, msg)
+		}
 	}
 }
 
@@ -35,7 +38,28 @@ func nocmd(txt, cmd string, hasArg bool) bool {
 }
 
 func ActivateFor(c *irc.Client) {
-	c.AddHandler("PRIVMSG", forgeSkill(".c", true, flipCoin, c))
-	c.AddHandler("PRIVMSG", forgeSkill(".j", true, joinChannel, c))
-	c.AddHandler("PRIVMSG", forgeSkill(".leave", true, leaveChannel, c))
+	c.AddHandler("PRIVMSG", forgeSkill(archetype{
+		cmd:        ".authorize",
+		hasArg:     true,
+		authorized: true,
+		function:   addAuthorizedIdent,
+	}, c))
+	c.AddHandler("PRIVMSG", forgeSkill(archetype{
+		cmd:        ".c",
+		hasArg:     true,
+		authorized: false,
+		function:   flipCoin,
+	}, c))
+	c.AddHandler("PRIVMSG", forgeSkill(archetype{
+		cmd:        ".j",
+		hasArg:     true,
+		authorized: true,
+		function:   joinChannel,
+	}, c))
+	c.AddHandler("PRIVMSG", forgeSkill(archetype{
+		cmd:        ".leave",
+		hasArg:     true,
+		authorized: true,
+		function:   leaveChannel,
+	}, c))
 }

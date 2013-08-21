@@ -1,5 +1,7 @@
 package irc
 
+// IRC client implementation.
+
 import (
 	"bufio"
 	"fmt"
@@ -17,11 +19,12 @@ type Client struct {
 	error       error
 }
 
+// Connect to irc server at `addr` as this `user`
+// if success Connect returns `Client`.
 func Connect(addr string, user User) (*Client, error) {
 	client := &Client{
-		User:      user,
-		Errorchan: make(chan error),
-		// Buffer 25 messages at channel, this is a lot!
+		User:        user,
+		Errorchan:   make(chan error),
 		messagechan: make(chan *Message, 25),
 	}
 	client.setupMsgHandlers()
@@ -86,25 +89,13 @@ func (c *Client) responseCTCP(to, answer string) {
 	c.Notice(to, ctcpQuote(answer))
 }
 
-func (c *Client) respondTo(maskedUser, action, talkedTo, message string) {
-	message = strings.TrimPrefix(message, ":")
-	maskedUser = strings.TrimPrefix(maskedUser, ":")
-	user := strings.SplitN(maskedUser, "!", 2)
-	msg := &Message{
-		From:   user[0],
-		To:     talkedTo,
-		Action: action,
-		Body:   message,
-	}
-	c.messagechan <- msg
-}
-
+// `Connect` will spawn `handleInput` as goroutine to handle
+// all input message from irc server, then preprocess the message
 func (c *Client) handleInput() {
 	defer c.conn.Close()
 	reader := bufio.NewReader(c.conn)
 	for {
-		line, err := reader.ReadString('\n')
-		if err != nil {
+		if line, err := reader.ReadString('\n'); err != nil {
 			close(c.messagechan)
 			c.Errorchan <- err
 			break
@@ -116,15 +107,14 @@ func (c *Client) handleInput() {
 			packet = []string{packet[1], packet[0], c.User.Nick, packet[1]}
 		}
 		if len(packet) == 4 {
-			c.respondTo(packet[0], packet[1], packet[2], packet[3])
+			c.messagechan <- createMessage(packet[0], packet[1], packet[2], packet[3])
 		}
 	}
 }
 
 func (c *Client) processMessage() {
 	for {
-		msg, ok := <-c.messagechan
-		if !ok {
+		if msg, ok := <-c.messagechan; !ok {
 			return
 		}
 		for _, fn := range c.msgHandlers[msg.Action] {
