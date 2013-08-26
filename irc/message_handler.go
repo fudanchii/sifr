@@ -5,10 +5,17 @@ import (
 )
 
 type Message struct {
-	From   string
-	To     string
+	// Ident whose this message coming from
+	From string
+
+	// Ident, nick, or channel where this message sent to
+	To string
+
+	// Purpose of the message, eg. NOTICE, or PRIVMSG, etc
 	Action string
-	Body   string
+
+	// Message's body (trail)
+	Body string
 }
 
 type MessageHandler func(*Message)
@@ -17,14 +24,12 @@ type MessageHandlers map[string][]MessageHandler
 
 func createMessage(maskedUser, action, talkedTo, message string) *Message {
 	message = strings.TrimPrefix(message, ":")
-	maskedUser = strings.TrimPrefix(maskedUser, ":")
-	user := strings.SplitN(maskedUser, "!", 2)
+	user = strings.TrimPrefix(maskedUser, ":")
 	msg := &Message{
-		From:      user[0],
-		FromIdent: maskedUser,
-		To:        talkedTo,
-		Action:    action,
-		Body:      message,
+		From:   user,
+		To:     talkedTo,
+		Action: action,
+		Body:   message,
 	}
 	return msg
 }
@@ -81,4 +86,8 @@ func (c *Client) handleCTCP(msg *Message) {
 
 func (m *Message) IsCTCP() bool {
 	return m.Body[0] == '\001' && m.Body[len(m.Body)-1] == '\001'
+}
+
+func (m *Message) FromNick() string {
+	return m.From[:strings.Index(m.From, "!")]
 }
