@@ -21,6 +21,7 @@ func NewUser(nick, username, realname, password string) *User {
 	}
 }
 
+// Check if message directed to this User, or to the channel.
 func (u *User) IsMsgForMe(msg *Message) bool {
 	re, _ := regexp.Compile("(^| )" + u.Nick + "([\\W]|$)")
 	return msg.To == u.Nick || re.MatchString(msg.Body)
