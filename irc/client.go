@@ -11,10 +11,16 @@ import (
 )
 
 type Client struct {
-	conn        net.Conn
-	User        User
+	User      User
+	Errorchan chan error
+
+	// Hold the actual irc connection
+	conn net.Conn
+
+	// List of MessageHandler chain, keyed by Message's action
 	msgHandlers MessageHandlers
-	Errorchan   chan error
+
+	// Message gets transmitted through this channel
 	messagechan chan *Message
 	error       error
 }
@@ -39,6 +45,7 @@ func Connect(addr string, user User) (*Client, error) {
 	return client, nil
 }
 
+// Implement Error interface
 func (c *Client) Error() string {
 	return "Error creating client: " + c.error.Error() + "\n"
 }
@@ -77,6 +84,9 @@ func (c *Client) PrivMsg(to, msg string) {
 	c.Send("PRIVMSG %s :%s", to, msg)
 }
 
+// Register User to the server, and optionally identify with nickserv
+// XXX: Need to wait nickserv identify until User actually connected.
+//      - At the first CTCP VERSION request?
 func (c *Client) register(user User) {
 	c.Nick(user.Nick)
 	c.Send("USER %s %d * :%s", user.Nick, user.mode, user.Realname)
@@ -85,12 +95,12 @@ func (c *Client) register(user User) {
 	}
 }
 
+// Response CTCP message.
 func (c *Client) responseCTCP(to, answer string) {
 	c.Notice(to, ctcpQuote(answer))
 }
 
-// `Connect` will spawn `handleInput` as goroutine to handle
-// all input message from irc server, then preprocess the message
+// Sit still wait for input, then pass it to Client.messagechan
 func (c *Client) handleInput() {
 	defer c.conn.Close()
 	reader := bufio.NewReader(c.conn)
@@ -112,6 +122,7 @@ func (c *Client) handleInput() {
 	}
 }
 
+// Execute MessageHandler chain once its arrived at Client.messagechan
 func (c *Client) processMessage() {
 	for {
 		if msg, ok := <-c.messagechan; !ok {
