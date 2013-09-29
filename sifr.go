@@ -16,9 +16,9 @@ var (
 // Flags
 var (
 	flVersion  = flag.Bool("version", false, "Show current version then exit.")
-	flNick     = flag.String("nick", "sifr-chan", "Nickname to use.")
-	flUsername = flag.String("username", "", "Username to use.")
-	flRealname = flag.String("realname", "", "Realname to use.")
+	flNick     = flag.String("nick", "shifuru", "Nickname to use.")
+	flUsername = flag.String("username", "shifuru", "Username to use.")
+	flRealname = flag.String("realname", "shifuru", "Realname to use.")
 	flPassword = flag.String("password", "", "User's password")
 	flServer   = flag.String("server", "", "Server to connect to.")
 	flHelp     = flag.Bool("help", false, "Display usage, then exit")
