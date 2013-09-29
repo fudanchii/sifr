@@ -14,6 +14,7 @@ type Client struct {
 	msgHandlers MessageHandlers
 	Errorchan   chan error
 	messagechan chan *Message
+	error       error
 }
 
 func Connect(addr string, user User) (*Client, error) {
@@ -26,7 +27,7 @@ func Connect(addr string, user User) (*Client, error) {
 	client.setupMsgHandlers()
 	cConn, err := net.Dial("tcp", addr)
 	if err != nil {
-		return nil, &Client{}
+		return nil, &Client{error: err}
 	}
 	client.conn = cConn
 	go client.handleInput()
@@ -36,7 +37,7 @@ func Connect(addr string, user User) (*Client, error) {
 }
 
 func (c *Client) Error() string {
-	return "Error creating client.\n"
+	return "Error creating client: " + c.error.Error() + "\n"
 }
 
 func (c *Client) Send(cmd string, a ...interface{}) {
