@@ -5,36 +5,25 @@ import (
 )
 
 type Message struct {
-	// Ident whose this message coming from
+	// Ident whose this message coming from.
 	From string
 
-	// Ident, nick, or channel where this message sent to
+	// Ident, nick, or channel where this message sent to.
 	To string
 
-	// Purpose of the message, eg. NOTICE, or PRIVMSG, etc
+	// Purpose of the message, eg. NOTICE, or PRIVMSG, etc.
 	Action string
 
-	// Message's body (trail)
+	// Action params, separated by space.
+	Params string
+
+	// Message's body (trail).
 	Body string
 }
 
 type MessageHandler func(*Message)
 
 type MessageHandlers map[string][]MessageHandler
-
-// Create Message struct from received message.
-// TODO: Accept raw input, parse here.
-func createMessage(maskedUser, action, talkedTo, message string) *Message {
-	message = strings.TrimPrefix(message, ":")
-	user = strings.TrimPrefix(maskedUser, ":")
-	msg := &Message{
-		From:   user,
-		To:     talkedTo,
-		Action: action,
-		Body:   message,
-	}
-	return msg
-}
 
 // CTCP message quoted with \001
 func ctcpQuote(cmd string) string {
@@ -52,14 +41,11 @@ func ctcpDequote(cmd string) string {
 }
 
 // Add default handler for incoming messages.
-// TODO: Make sure this function actually called once.
 func (c *Client) setupMsgHandlers() {
 	c.msgHandlers = make(MessageHandlers)
-
 	c.AddHandler("PING", func(msg *Message) {
 		c.Pong(msg.Body)
 	})
-
 	c.AddHandler("PRIVMSG", c.privMsgDefaultHandler)
 }
 

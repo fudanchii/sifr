@@ -8,11 +8,13 @@ import (
 	"log"
 	"net"
 	"strings"
+	"time"
 )
 
 type Client struct {
-	User      User
-	Errorchan chan error
+	User       User
+	Errorchan  chan error
+	Registered bool
 
 	// Hold the actual irc connection
 	conn net.Conn
@@ -31,6 +33,7 @@ func Connect(addr string, user User) (*Client, error) {
 	client := &Client{
 		User:        user,
 		Errorchan:   make(chan error),
+		Registered:  false,
 		messagechan: make(chan *Message, 25),
 	}
 	client.setupMsgHandlers()
@@ -88,6 +91,13 @@ func (c *Client) PrivMsg(to, msg string) {
 // XXX: Need to wait nickserv identify until User actually connected.
 //      - At the first CTCP VERSION request?
 func (c *Client) register(user User) {
+	if c.Registered {
+		return
+	}
+
+	// Sleep until we sure it's connected
+	time.Sleep(time.Duration(5000) * time.Millisecond)
+
 	c.Nick(user.Nick)
 	c.Send("USER %s %d * :%s", user.Nick, user.mode, user.Realname)
 	if len(user.password) != 0 {
@@ -103,21 +113,14 @@ func (c *Client) responseCTCP(to, answer string) {
 // Sit still wait for input, then pass it to Client.messagechan
 func (c *Client) handleInput() {
 	defer c.conn.Close()
-	reader := bufio.NewReader(c.conn)
+	scanner = bufio.NewScanner(c.conn)
 	for {
-		if line, err := reader.ReadString('\n'); err != nil {
+		if scanner.Scan() {
+			c.messagechan <- parseMessage(scanner.Text())
+		} else {
 			close(c.messagechan)
-			c.Errorchan <- err
+			c.Errorchan <- scanner.Err()
 			break
-		}
-		log.Println("in>", line)
-		// FIXME: This is obviously not the right way to parse messages
-		packet := strings.SplitN(line[:len(line)-2], " ", 4)
-		if len(packet) == 2 {
-			packet = []string{packet[1], packet[0], c.User.Nick, packet[1]}
-		}
-		if len(packet) == 4 {
-			c.messagechan <- createMessage(packet[0], packet[1], packet[2], packet[3])
 		}
 	}
 }
@@ -125,7 +128,8 @@ func (c *Client) handleInput() {
 // Execute MessageHandler chain once its arrived at Client.messagechan
 func (c *Client) processMessage() {
 	for {
-		if msg, ok := <-c.messagechan; !ok {
+		msg, ok := <-c.messagechan
+		if !ok {
 			return
 		}
 		for _, fn := range c.msgHandlers[msg.Action] {
