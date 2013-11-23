@@ -5,10 +5,10 @@ import (
 )
 
 func canPermit(msg *irc.Message) bool {
-    // Stub...
-    return true
+	// Stub...
+	return true
 }
 
 func addAuthorizedIdent(c *irc.Client, m *irc.Message) {
-    // w.i.p.
+	// w.i.p.
 }
