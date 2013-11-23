@@ -1,6 +1,7 @@
 package irc
 
 import (
+	"bytes"
 	"strings"
 )
 
@@ -18,8 +19,11 @@ func parseMessage(message string) *Message {
 
 func doSplit(message string, holder *string) string {
 	splitted := strings.SplitN(message, " ", 2)
-	holder = splitted[0]
-	return splitted[1]
+	*holder = splitted[0]
+	if len(splitted) == 2 {
+		return splitted[1]
+	}
+	return ""
 }
 
 func parsePrefix(message string, msgStruct *Message) string {
@@ -35,11 +39,13 @@ func parseCommand(message string, msgStruct *Message) string {
 }
 
 func parseTrailer(message string, msgStruct *Message) string {
-	if message[0] == ':' { // We've got trailer here!
+	if len(message) == 0 {
+		return ""
+	} else if message[0] == ':' { // We've got trailer here!
 		msgStruct.Body = message[1:]
 		return ""
 	}
-	return parseParams(message.msgStruct)
+	return parseParams(message, msgStruct)
 }
 
 func parseParams(message string, msgStruct *Message) string {
@@ -49,7 +55,9 @@ func parseParams(message string, msgStruct *Message) string {
 		var tempStr string
 		buffer := bytes.NewBufferString(msgStruct.Params)
 		message = doSplit(message, &tempStr)
-		buffer.WriteString(" ")
+		if len(msgStruct.Params) > 0 {
+			buffer.WriteString(" ")
+		}
 		buffer.WriteString(tempStr)
 		msgStruct.Params = buffer.String()
 	}
