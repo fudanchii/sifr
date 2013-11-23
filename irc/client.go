@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"log"
 	"net"
-	"strings"
 	"time"
 )
 
@@ -95,11 +94,12 @@ func (c *Client) register(user User) {
 		return
 	}
 
+	c.Nick(user.Nick)
+	c.Send("USER %s %d * :%s", user.Nick, user.mode, user.Realname)
+
 	// Sleep until we sure it's connected
 	time.Sleep(time.Duration(5000) * time.Millisecond)
 
-	c.Nick(user.Nick)
-	c.Send("USER %s %d * :%s", user.Nick, user.mode, user.Realname)
 	if len(user.password) != 0 {
 		c.PrivMsg("nickserv", "identify "+user.password)
 	}
@@ -113,10 +113,12 @@ func (c *Client) responseCTCP(to, answer string) {
 // Sit still wait for input, then pass it to Client.messagechan
 func (c *Client) handleInput() {
 	defer c.conn.Close()
-	scanner = bufio.NewScanner(c.conn)
+	scanner := bufio.NewScanner(c.conn)
 	for {
 		if scanner.Scan() {
-			c.messagechan <- parseMessage(scanner.Text())
+			msg := scanner.Text()
+			log.Println("in>", msg)
+			c.messagechan <- parseMessage(msg)
 		} else {
 			close(c.messagechan)
 			c.Errorchan <- scanner.Err()
