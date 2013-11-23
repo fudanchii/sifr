@@ -23,8 +23,8 @@ func process(args []string) string {
 func flipCoin(c *irc.Client, msg *irc.Message) {
 	args := parse(msg.Body)
 	if context := msg.To[0]; context == '#' {
-		c.PrivMsg(msg.To, msg.From+": "+process(args))
+		c.PrivMsg(msg.To, msg.FromNick()+": "+process(args))
 	} else {
-		c.PrivMsg(msg.From, process(args))
+		c.PrivMsg(msg.FromNick(), process(args))
 	}
 }
