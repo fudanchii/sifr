@@ -4,6 +4,7 @@ import (
 	"flag"
 	"github.com/fudanchii/sifr/irc"
 	"github.com/fudanchii/sifr/skill"
+	"log"
 	"os"
 )
 
@@ -47,8 +48,7 @@ func main() {
 	user := irc.NewUser(*flNick, *flUsername, *flRealname, *flPassword)
 	client, err := irc.Connect(*flServer, *user)
 	if err != nil {
-		os.Stderr.WriteString(err.Error() + "\n")
-		os.Exit(1)
+		log.Fatal(err.Error() + "\n")
 	}
 	skill.ActivateFor(client)
 	<-client.Errorchan
