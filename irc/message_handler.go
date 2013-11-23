@@ -79,9 +79,9 @@ func (c *Client) handleCTCP(msg *Message) {
 	cmd := ctcpDequote(msg.Body)
 	switch cmd {
 	case "VERSION":
-		c.responseCTCP(msg.From, "VERSION Sifr:0.0.0")
+		c.responseCTCP(msg.FromNick(), "VERSION Sifr:0.0.0")
 	case "SOURCE":
-		c.responseCTCP(msg.From, "SOURCE https://github.com/fudanchii/sifr")
+		c.responseCTCP(msg.FromNick(), "SOURCE https://github.com/fudanchii/sifr")
 	}
 }
 
@@ -92,5 +92,9 @@ func (m *Message) IsCTCP() bool {
 
 // Return the nick whose this Message came from.
 func (m *Message) FromNick() string {
-	return m.From[:strings.Index(m.From, "!")]
+	offset := strings.Index(m.From, "!")
+	if offset == -1 {
+		offset = len(m.From)
+	}
+	return m.From[:offset]
 }
