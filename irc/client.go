@@ -97,16 +97,16 @@ func (c *Client) register(user User) {
 	c.Nick(user.Nick)
 	c.Send("USER %s %d * :%s", user.Nick, user.mode, user.Realname)
 
-	// Sleep until we sure it's connected
-	time.Sleep(time.Duration(5000) * time.Millisecond)
-
 	if len(user.password) != 0 {
+		// Sleep until we sure it's connected
+		time.Sleep(time.Duration(5000) * time.Millisecond)
+
 		c.PrivMsg("nickserv", "identify "+user.password)
 	}
 }
 
 // Response CTCP message.
-func (c *Client) responseCTCP(to, answer string) {
+func (c *Client) ResponseCTCP(to, answer string) {
 	c.Notice(to, ctcpQuote(answer))
 }
 
