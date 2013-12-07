@@ -5,6 +5,23 @@ import (
 	"strings"
 )
 
+type Message struct {
+	// Ident whose this message coming from.
+	From string
+
+	// Ident, nick, or channel where this message sent to.
+	To string
+
+	// Purpose of the message, eg. NOTICE, or PRIVMSG, etc.
+	Action string
+
+	// Action params, separated by space.
+	Params string
+
+	// Message's body (trail).
+	Body string
+}
+
 func parseMessage(message string) *Message {
 	msgStruct := &Message{
 		From:   "",

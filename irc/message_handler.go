@@ -4,23 +4,6 @@ import (
 	"strings"
 )
 
-type Message struct {
-	// Ident whose this message coming from.
-	From string
-
-	// Ident, nick, or channel where this message sent to.
-	To string
-
-	// Purpose of the message, eg. NOTICE, or PRIVMSG, etc.
-	Action string
-
-	// Action params, separated by space.
-	Params string
-
-	// Message's body (trail).
-	Body string
-}
-
 type MessageHandler func(*Message)
 
 type MessageHandlers map[string][]MessageHandler
@@ -74,14 +57,16 @@ func (c *Client) privMsgDefaultHandler(msg *Message) {
 
 // Handle CTCP messages
 // XXX: Custom CTCP handler?
-// TODO: Handle CTCP PING
 func (c *Client) handleCTCP(msg *Message) {
 	cmd := ctcpDequote(msg.Body)
-	switch cmd {
-	case "VERSION":
-		c.responseCTCP(msg.FromNick(), "VERSION Sifr:0.0.0")
-	case "SOURCE":
-		c.responseCTCP(msg.FromNick(), "SOURCE https://github.com/fudanchii/sifr")
+	sender := msg.FromNick()
+	switch {
+	case cmd == "VERSION":
+		c.ResponseCTCP(sender, "VERSION Sifr:0.0.0")
+	case cmd == "SOURCE":
+		c.ResponseCTCP(sender, "SOURCE https://github.com/fudanchii/sifr")
+	case strings.HasPrefix(cmd, "PING "):
+		c.ResponseCTCP(sender, cmd)
 	}
 }
 
