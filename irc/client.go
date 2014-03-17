@@ -129,11 +129,7 @@ func (c *Client) handleInput() {
 
 // Execute MessageHandler chain once its arrived at Client.messagechan
 func (c *Client) processMessage() {
-	for {
-		msg, ok := <-c.messagechan
-		if !ok {
-			return
-		}
+	for msg := range c.messagechan {
 		for _, fn := range c.msgHandlers[msg.Action] {
 			fn(msg)
 		}
