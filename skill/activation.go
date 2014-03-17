@@ -34,7 +34,7 @@ func nocmd(txt, cmd string, argc uint) bool {
 	if len(txt) < offset {
 		return true
 	}
-	return !strings.HasPrefix(txt, cmd)
+	return strings.SplitN(txt, " ", 2)[0] != cmd
 }
 
 func ActivateFor(c *irc.Client) {
@@ -61,5 +61,17 @@ func ActivateFor(c *irc.Client) {
 		argc:       1,
 		authorized: true,
 		function:   leaveChannel,
+	}, c))
+	c.AddHandler("PRIVMSG", forgeSkill(&archetype{
+		cmd:        ".rb",
+		argc:       1,
+		authorized: false,
+		function:   execRuby,
+	}, c))
+	c.AddHandler("PRIVMSG", forgeSkill(&archetype{
+		cmd:        ".rbreset",
+		argc:       0,
+		authorized: false,
+		function:   resetRbCtx,
 	}, c))
 }
