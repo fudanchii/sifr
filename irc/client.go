@@ -8,6 +8,8 @@ import (
 	"log"
 	"net"
 	"time"
+
+	msg "github.com/fudanchii/sifr/irc/message"
 )
 
 // Connect to irc server at `addr` as this `user`
@@ -35,10 +37,10 @@ func newClient(user *User, conn net.Conn) *Client {
 	client := &Client{
 		User:        *user,
 		Errorchan:   make(chan error),
-		messagechan: make(chan *Message, 25),
+		messagechan: make(chan *msg.Message, 25),
 	}
-	client.setupMsgHandlers()
 	client.conn = conn
+	client.setupHandlers()
 	go client.handleInput()
 	go client.processMessage()
 	client.auth(*user)
@@ -53,7 +55,7 @@ type Client struct {
 	Authenticated bool
 	conn          net.Conn
 	msgHandlers   MessageHandlers
-	messagechan   chan *Message
+	messagechan   chan *msg.Message
 	error         error
 }
 
@@ -106,7 +108,7 @@ func (c *Client) PrivMsg(to, msg string) {
 
 // Response CTCP message.
 func (c *Client) ResponseCTCP(to, answer string) {
-	c.Notice(to, ctcpQuote(answer))
+	c.Notice(to, msg.TagCTCP(answer))
 }
 
 // Register User to the server, and optionally identify with nickserv
@@ -132,9 +134,9 @@ func (c *Client) handleInput() {
 	scanner := bufio.NewScanner(c.conn)
 	for {
 		if scanner.Scan() {
-			msg := scanner.Text()
-			log.Println("in>", msg)
-			c.messagechan <- parseMessage(msg)
+			line := scanner.Text()
+			log.Println("in>", line)
+			c.messagechan <- msg.Parse(line)
 		} else {
 			close(c.messagechan)
 			c.Errorchan <- scanner.Err()
@@ -145,9 +147,9 @@ func (c *Client) handleInput() {
 
 // Execute MessageHandler chain once its arrived at Client.messagechan
 func (c *Client) processMessage() {
-	for msg := range c.messagechan {
-		for _, fn := range c.msgHandlers[msg.Action] {
-			fn(msg)
+	for m := range c.messagechan {
+		for _, fn := range c.msgHandlers[m.Action] {
+			fn.Handle(c, m)
 		}
 	}
 }

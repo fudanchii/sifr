@@ -1,4 +1,4 @@
-package irc
+package message
 
 import "testing"
 
@@ -10,7 +10,7 @@ func TestParse(t *testing.T) {
 		Params: "",
 		Body:   "irc.example.com",
 	}
-	parsed := parseMessage("PING :irc.example.com")
+	parsed := Parse("PING :irc.example.com")
 	if compare(message, parsed) {
 		t.Fatalf("%s == %s | %s == %s", message.Action, parsed.Action, message.Body, parsed.Body)
 	}
@@ -22,9 +22,9 @@ func TestParse(t *testing.T) {
 		Params: "",
 		Body:   "Please wait while we process your connection.",
 	}
-	parsed = parseMessage(":irc.example.com 439 * :Please wait while we process your connection.")
+	parsed = Parse(":irc.example.com 439 * :Please wait while we process your connection.")
 	if compare(message, parsed) {
-		t.Fatal()
+		t.Fatalf("%s == %s | %s == %s", message.Action, parsed.Action, message.Body, parsed.Body)
 	}
 
 	message = &Message{
@@ -34,7 +34,7 @@ func TestParse(t *testing.T) {
 		Params: "irc.example.com hybrid-7.2.3+plexus-3.1.0(20130523_0-539) CDFGNRSUWXabcdfgijklnopqrsuwxyz BIMNORSabcehiklmnopqstvz Iabehkloqv",
 		Body:   "",
 	}
-	parsed = parseMessage(":irc.example.com 004 shifuru irc.example.com hybrid-7.2.3+plexus-3.1.0(20130523_0-539) CDFGNRSUWXabcdfgijklnopqrsuwxyz BIMNORSabcehiklmnopqstvz Iabehkloqv")
+	parsed = Parse(":irc.example.com 004 shifuru irc.example.com hybrid-7.2.3+plexus-3.1.0(20130523_0-539) CDFGNRSUWXabcdfgijklnopqrsuwxyz BIMNORSabcehiklmnopqstvz Iabehkloqv")
 	if compare(message, parsed) {
 		t.Fatalf("'%s' == '%s'", message.Params, parsed.Params)
 	}

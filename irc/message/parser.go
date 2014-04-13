@@ -1,4 +1,4 @@
-package irc
+package message
 
 import (
 	"bytes"
@@ -22,7 +22,7 @@ type Message struct {
 	Body string
 }
 
-func parseMessage(message string) *Message {
+func Parse(message string) *Message {
 	msgStruct := &Message{
 		From:   "",
 		To:     "",

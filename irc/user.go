@@ -1,6 +1,10 @@
 package irc
 
-import "regexp"
+import (
+	"regexp"
+
+	msg "github.com/fudanchii/sifr/irc/message"
+)
 
 type User struct {
 	Nick     string
@@ -22,7 +26,7 @@ func NewUser(nick, username, realname, password string) *User {
 }
 
 // Check if message directed to this User, or to the channel.
-func (u *User) IsMsgForMe(msg *Message) bool {
+func (u *User) IsMsgForMe(m *msg.Message) bool {
 	re, _ := regexp.Compile("(^| )" + u.Nick + "([\\W]|$)")
-	return msg.To == u.Nick || re.MatchString(msg.Body)
+	return m.To == u.Nick || re.MatchString(m.Body)
 }
