@@ -7,13 +7,11 @@ import (
 	"os"
 )
 
-// Constants
 var (
 	APPNAME = "Sifr"
 	VERSION = "v0.0.0"
 )
 
-// Flags
 var (
 	flVersion  = flag.Bool("version", false, "Show current version then exit.")
 	flNick     = flag.String("nick", "shifuru", "Nickname to use.")
@@ -47,7 +45,7 @@ func main() {
 	user := irc.NewUser(*flNick, *flUsername, *flRealname, *flPassword)
 	client, err := irc.Connect(*flServer, *user)
 	if err != nil {
-		log.Fatal(err.Error() + "\n")
+		log.Fatalf("%s", err)
 	}
 	<-client.Errorchan
 }

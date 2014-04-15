@@ -54,8 +54,8 @@ func lowQuote(cmd string) string {
 
 func lowDequote(cmd string) string {
 	str := strings.Replace(cmd, "\0200", "\000", -1)
-	str = strings.Replace(cmd, "\020n", "\n", -1)
-	str = strings.Replace(cmd, "\020r", "\r", -1)
+	str = strings.Replace(str, "\020n", "\n", -1)
+	str = strings.Replace(str, "\020r", "\r", -1)
 	return cpyExclude(str, 020)
 }
 
