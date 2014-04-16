@@ -1,15 +1,16 @@
+// message package implements irc message parser, etc.
 package message
 
 import (
 	"strings"
 )
 
-// Check if this Message is CTCP message.
+// IsCTCP check if this Message is CTCP message.
 func (m *Message) IsCTCP() bool {
 	return m.Body[0] == '\001' && m.Body[len(m.Body)-1] == '\001'
 }
 
-// Return the nick whose this Message came from.
+// FromNick returns the nick whose this Message came from.
 func (m *Message) FromNick() string {
 	offset := strings.Index(m.From, "!")
 	if offset == -1 {
@@ -20,36 +21,39 @@ func (m *Message) FromNick() string {
 
 // -----------------------------------------------
 
-// CTCP message quoted with \001
+// TagCTCP tags message `cmd` with CTCP delimiter and
+// escape unsafe characters.
 func TagCTCP(cmd string) string {
-	quoted := "\001" + lowQuote(cmd) + "\001"
+	quoted := "\001" + Quote(cmd) + "\001"
 	return quoted
 }
 
-// Remove CTCP \001 quote,
-// return the original string if it has no quote.
+// UntagCTCP removes CTCP delimiter tag and unescape
+// quoted characters.
 func UntagCTCP(cmd string) string {
 	if cmd[0] != '\001' || cmd[len(cmd)-1] != '\001' {
-		return ctcpDequote(cmd)
+		return Dequote(cmd)
 	}
-	return ctcpDequote(cmd[1 : len(cmd)-1])
+	return Dequote(cmd[1 : len(cmd)-1])
+}
+
+// Dequote unescapes quoted characters from cmd.
+func Dequote(cmd string) string {
+	str := strings.Replace(lowDequote(cmd), `\a`, "\001", -1)
+	return cpyExclude(str, 0134)
+}
+
+// Quote escapes unsafe characters drom cmd.
+func Quote(cmd string) string {
+	str := strings.Replace(ctcpQuote(cmd), "\020", "\020\020", -1)
+	str = strings.Replace(str, "\r", "\020r", -1)
+	str = strings.Replace(str, "\n", "\020n", -1)
+	return strings.Replace(str, "\000", "\0200", -1)
 }
 
 func ctcpQuote(cmd string) string {
 	str := strings.Replace(cmd, `\`, `\\`, -1)
 	return strings.Replace(str, "\001", `\a`, -1)
-}
-
-func ctcpDequote(cmd string) string {
-	str := strings.Replace(lowDequote(cmd), `\a`, "\001", -1)
-	return cpyExclude(str, 0134)
-}
-
-func lowQuote(cmd string) string {
-	str := strings.Replace(ctcpQuote(cmd), "\020", "\020\020", -1)
-	str = strings.Replace(str, "\r", "\020r", -1)
-	str = strings.Replace(str, "\n", "\020n", -1)
-	return strings.Replace(str, "\000", "\0200", -1)
 }
 
 func lowDequote(cmd string) string {
