@@ -72,8 +72,6 @@ func cpyExclude(str string, chr byte) string {
 				continue
 			case str[i+1] == chr:
 				i++
-				tch = append(tch, str[i])
-				continue
 			default:
 				continue
 			}
