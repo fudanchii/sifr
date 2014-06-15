@@ -23,13 +23,7 @@ type Message struct {
 }
 
 func Parse(message string) *Message {
-	msgStruct := &Message{
-		From:   "",
-		To:     "",
-		Action: "",
-		Params: "",
-		Body:   "",
-	}
+	msgStruct := &Message{}
 	message = parsePrefix(message, msgStruct)
 	return msgStruct
 }
