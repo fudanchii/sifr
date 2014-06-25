@@ -1,4 +1,4 @@
-package irc_test
+package irc_spec
 
 import (
 	. "github.com/fudanchii/sifr/irc/message"

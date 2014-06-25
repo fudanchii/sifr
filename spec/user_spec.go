@@ -1,4 +1,4 @@
-package irc_test
+package irc_spec
 
 import (
 	. "github.com/fudanchii/sifr/irc"
@@ -35,7 +35,7 @@ var _ = Describe("IRC", func() {
 				Action: "",
 				Params: "",
 			}
-			Expect(user.IsMsgForMe(msg)).To(BeTrue())
+			Expect(user.OwnThis(msg)).To(BeTrue())
 		})
 	})
 })

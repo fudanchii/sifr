@@ -1,4 +1,4 @@
-package irc_test
+package irc_spec
 
 import (
 	. "github.com/onsi/ginkgo"
