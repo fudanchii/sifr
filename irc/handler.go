@@ -10,6 +10,7 @@ func (c *Client) setupHandlers() {
 		c.msgHandlers = MessageHandlers{}
 		c.AddHandler("PING", &pingHandler{})
 		c.AddHandler("PRIVMSG", &defaultCTCPHandler{})
+		c.AddHandler("001", &authHandler{})
 	}
 }
 
@@ -23,4 +24,3 @@ func (c *Client) AddHandler(cmd string, fn MessageHandler) {
 	}
 	c.msgHandlers[cmd] = append(c.msgHandlers[cmd], fn)
 }
-

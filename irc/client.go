@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"log"
 	"net"
-	"time"
 
 	msg "github.com/fudanchii/sifr/irc/message"
 )
@@ -43,7 +42,7 @@ func newClient(user *User, conn net.Conn) *Client {
 	client.setupHandlers()
 	go client.handleInput()
 	go client.processMessage()
-	client.auth(*user)
+	client.initReg(*user)
 	return client
 }
 
@@ -112,20 +111,9 @@ func (c *Client) ResponseCTCP(to, answer string) {
 }
 
 // Register User to the server, and optionally identify with nickserv
-// XXX: Need to wait identifying to nickserv until User actually connected.
-//      - At the first CTCP VERSION request?
-func (c *Client) auth(user User) {
-	if c.Authenticated {
-		return
-	}
+func (c *Client) initReg(user User) {
 	c.Nick(user.Nick)
 	c.Send("USER %s %d * :%s", user.Nick, user.mode, user.Realname)
-	if len(user.password) != 0 {
-		// Sleep until we sure it's connected
-		time.Sleep(time.Duration(5000) * time.Millisecond)
-
-		c.PrivMsg("nickserv", "identify "+user.password)
-	}
 }
 
 // Sit still wait for input, then pass it to Client.messagechan
