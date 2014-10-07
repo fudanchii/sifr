@@ -9,3 +9,5 @@ TODO:
 - Bind some dynamic language to enable scripting to change client behavior dynamically.
 
 Licensed under MIT/X11
+
+[![Gitter](https://badges.gitter.im/Join Chat.svg)](https://gitter.im/fudanchii/sifr?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
